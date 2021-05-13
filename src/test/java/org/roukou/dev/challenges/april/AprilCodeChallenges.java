@@ -85,32 +85,6 @@ public class AprilCodeChallenges {
       assertEquals("[aaaaa, bb, cccc, d, eeeeee, aaa, fff]", result.toString());
     }
 
-    @Test
-    public void challenge_one_character_shorting() {
-      String input = "aaaaabbccccdeeeeeeaaafff";
-
-      // TODO: Add your code here
-      // Two-pass approach:
-      // (1) gather data about the boundaries between the runs,
-      // (2) create the substrings based on output from the first.
-      List<String> result =
-          Arrays.asList(
-              Arrays.stream(input.split(""))
-                  .reduce(
-                      "",
-                      (res, character) -> {
-                        if (res.length() > 1) {
-                          var last = res.substring(res.length() - 1);
-                          if (!last.equals(character)) {
-                            res = res + ",";
-                          }
-                        }
-                        return res + character;
-                      })
-                  .split(","));
-
-      assertEquals("[aaaaa, bb, cccc, d, eeeeee, aaa, fff]", result.toString());
-    }
 
     /**
      * Select the longest words from an input stream. That is, select the words whose lengths are
