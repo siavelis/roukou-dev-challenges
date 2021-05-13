@@ -67,19 +67,22 @@ public class AprilCodeChallenges {
     public void challenge_one_character_shorting_() {
       String input = "aaaaabbccccdeeeeeeaaafff";
 
-      List<Integer> splitPositions = IntStream.range(0, input.length())
-                                              .filter(i -> i == 0 || (i > 0 && input.charAt(i) != input.charAt(i-1)))
-                                              .mapToObj(i -> i)
-                                              .collect(Collectors.toList());
+      List<Integer> splitPositions =
+          IntStream.range(0, input.length())
+              .filter(i -> i == 0 || (i > 0 && input.charAt(i) != input.charAt(i - 1)))
+              .mapToObj(i -> i)
+              .collect(Collectors.toList());
 
-      List<String> result = IntStream.range(0, splitPositions.size())
-                                     .mapToObj(i -> i != splitPositions.size() - 1 ?
-                                             input.substring(splitPositions.get(i),splitPositions.get(i+1)) :
-                                             input.substring(splitPositions.get(i)))
-                                     .collect(Collectors.toList());
+      List<String> result =
+          IntStream.range(0, splitPositions.size())
+              .mapToObj(
+                  i ->
+                      i != splitPositions.size() - 1
+                          ? input.substring(splitPositions.get(i), splitPositions.get(i + 1))
+                          : input.substring(splitPositions.get(i)))
+              .collect(Collectors.toList());
 
       assertEquals("[aaaaa, bb, cccc, d, eeeeee, aaa, fff]", result.toString());
-
     }
 
     @Test
@@ -90,10 +93,12 @@ public class AprilCodeChallenges {
       // Two-pass approach:
       // (1) gather data about the boundaries between the runs,
       // (2) create the substrings based on output from the first.
-      List<String> result = Arrays.asList(
-              Arrays
-                      .stream(input.split(""))
-                      .reduce("", (res, character) -> {
+      List<String> result =
+          Arrays.asList(
+              Arrays.stream(input.split(""))
+                  .reduce(
+                      "",
+                      (res, character) -> {
                         if (res.length() > 1) {
                           var last = res.substring(res.length() - 1);
                           if (!last.equals(character)) {
@@ -102,8 +107,7 @@ public class AprilCodeChallenges {
                         }
                         return res + character;
                       })
-                      .split(",")
-      );
+                  .split(","));
 
       assertEquals("[aaaaa, bb, cccc, d, eeeeee, aaa, fff]", result.toString());
     }
@@ -125,7 +129,7 @@ public class AprilCodeChallenges {
           input.collect(Collector.of(Longest::new, Longest::acc, Longest::comb, Longest::finish));
 
       assertEquals(Arrays.asList("charlie", "foxtrot"), result);
-      }
+    }
 
     class Longest {
       int len = -1;
@@ -157,7 +161,6 @@ public class AprilCodeChallenges {
         return list;
       }
     }
-
 
     /**
      * Given a Map<X, Set<Y>>, convert it to Map<Y, Set<X>>. Each set member of the input map's
@@ -210,41 +213,44 @@ public class AprilCodeChallenges {
       List<Class<?>> origin = List.of(ArrayList.class, HashSet.class, LinkedHashSet.class);
 
       // TODO: Provide your solution here
+
       Function<Class<?>, Stream<Class<?>>> superClasses =
-              clazz -> Stream.<Class<?>>iterate(clazz, Class::getSuperclass)
-                             .takeWhile(Objects::nonNull);
+          clazz ->
+              Stream.<Class<?>>iterate(clazz, Class::getSuperclass).takeWhile(Objects::nonNull);
 
       Function<Stream<? extends Class<?>>, Stream<? extends Class<?>>> classAndInterfaces =
-              stream -> stream.flatMap(clazz -> Stream.of(Stream.of(clazz), Arrays.stream(clazz.getInterfaces())))
-                              .flatMap(Function.identity());
+          stream ->
+              stream
+                  .flatMap(
+                      clazz -> Stream.of(Stream.of(clazz), Arrays.stream(clazz.getInterfaces())))
+                  .flatMap(Function.identity());
 
-      Function<Class<?>, Stream<? extends Class<?>>> superClassesAndInterfaces = superClasses.andThen(classAndInterfaces);
+      Function<Class<?>, Stream<? extends Class<?>>> superClassesAndInterfaces =
+          superClasses.andThen(classAndInterfaces);
 
-      Predicate<Class<?>> isConcrete = c -> ! Modifier.isAbstract(c.getModifiers());
+      Predicate<Class<?>> isConcrete = c -> !Modifier.isAbstract(c.getModifiers());
       Predicate<Class<?>> isInterface = Class::isInterface;
       Predicate<Class<?>> isInterfaceOrConcreteClass = isInterface.or(isConcrete);
 
       // 1) To understand the algorithm, write out the previous processing as a stream pattern.
       //    This isn't used directly, but will be converted to a collector below.
       Map<Boolean, Set<Class<?>>> unusedResult =
-              origin.stream()
-                    .flatMap(superClassesAndInterfaces)
-                    .filter(isInterfaceOrConcreteClass)
-                    .collect(Collectors.partitioningBy(isInterface,
-                                                       Collectors.toSet()));
+          origin.stream()
+              .flatMap(superClassesAndInterfaces)
+              .filter(isInterfaceOrConcreteClass)
+              .collect(Collectors.partitioningBy(isInterface, Collectors.toSet()));
 
       // 2) Convert the processing to a collector
       Collector<Class<?>, ?, Map<Boolean, Set<Class<?>>>> collector =
-              Collectors.flatMapping(superClassesAndInterfaces,
-                                     Collectors.filtering(isInterfaceOrConcreteClass,
-                                                          Collectors.partitioningBy(isInterface,
-                                                                                    Collectors.toSet())));
+          Collectors.flatMapping(
+              superClassesAndInterfaces,
+              Collectors.filtering(
+                  isInterfaceOrConcreteClass,
+                  Collectors.partitioningBy(isInterface, Collectors.toSet())));
 
       // 3) use it as a downstream collector
       Map<Class<?>, Map<Boolean, Set<Class<?>>>> result =
-              origin.stream()
-                    .collect(Collectors.groupingBy(Function.identity(),
-                                                   collector));
+          origin.stream().collect(Collectors.groupingBy(Function.identity(), collector));
 
       assertEquals(
           Map.of(
