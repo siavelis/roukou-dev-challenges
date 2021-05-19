@@ -25,6 +25,10 @@ public class SingleThreadedBlockingServer {
       while ((inputData = inputStream.read()) != -1) {
         outputStream.write(responseHandler(inputData));
       }
+
+      outputStream.close();
+      inputStream.close();
+      socket.close();
     }
   }
 
